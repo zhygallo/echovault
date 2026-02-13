@@ -30,8 +30,8 @@ class PiperTTS(BaseTTS):
         return np.frombuffer(raw, dtype=np.int16)
 
     def synthesize_stream(self, text: str) -> Iterator[bytes]:
-        for chunk in self._voice.synthesize_stream_raw(text):
-            yield chunk
+        for audio_chunk in self._voice.synthesize(text):
+            yield audio_chunk.audio_int16_bytes
 
     def get_sample_rate(self) -> int:
         return self._sample_rate

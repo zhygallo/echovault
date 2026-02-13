@@ -6,6 +6,7 @@ from typing import Callable
 import numpy as np
 import pyaudio
 from openwakeword.model import Model
+from openwakeword.utils import download_models
 
 from src.wakeword.base import BaseWakeWord
 from src.utils.logger import setup_logger
@@ -24,6 +25,7 @@ class OpenWakeWordDetector(BaseWakeWord):
         self._pa = pyaudio.PyAudio()
 
         logger.info(f"Loading OpenWakeWord model '{model_name}'...")
+        download_models(model_names=[model_name])
         self._model = Model(wakeword_models=[model_name], inference_framework="onnx")
         logger.info("OpenWakeWord model loaded.")
 

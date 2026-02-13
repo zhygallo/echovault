@@ -33,10 +33,14 @@ class ClaudeLLM(BaseLLM):
             max_tokens=self._max_tokens,
             system=self._system_prompt,
             messages=self._history,
+            tools=[{"type": "web_search_20250305", "name": "web_search", "max_uses": 3}],
         )
 
-        assistant_text = response.content[0].text
-        self._history.append({"role": "assistant", "content": assistant_text})
+        # Extract text from response (skip search result blocks)
+        assistant_text = "".join(
+            block.text for block in response.content if block.type == "text"
+        )
+        self._history.append({"role": "assistant", "content": response.content})
         logger.info(f"Claude response: {assistant_text[:80]}...")
         return assistant_text
 

@@ -24,7 +24,7 @@ case "$OS" in
     Linux)
         echo "[1/5] Installing system dependencies via apt..."
         sudo apt-get update -qq
-        sudo apt-get install -y -qq portaudio19-dev ffmpeg python3-dev python3-venv
+        sudo apt-get install -y -qq portaudio19-dev ffmpeg python3-dev
         ;;
     *)
         echo "Unsupported OS: $OS"
@@ -32,17 +32,21 @@ case "$OS" in
         ;;
 esac
 
-# Create virtual environment
-echo "[2/5] Creating Python virtual environment..."
-if [ ! -d ".venv" ]; then
-    python3 -m venv .venv
+# Install Poetry if missing
+echo "[2/5] Checking for Poetry..."
+if ! command -v poetry &>/dev/null; then
+    echo "  Poetry not found. Installing via pipx..."
+    if ! command -v pipx &>/dev/null; then
+        python3 -m pip install --user pipx
+        python3 -m pipx ensurepath
+    fi
+    pipx install poetry
 fi
-source .venv/bin/activate
+echo "  Poetry $(poetry --version)"
 
-# Install Python dependencies
+# Install Python dependencies via Poetry
 echo "[3/5] Installing Python dependencies..."
-pip install --upgrade pip -q
-pip install -r requirements.txt -q
+poetry install
 
 # Download Piper voice model
 echo "[4/5] Downloading Piper voice model (en_US-lessac-medium)..."
