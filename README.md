@@ -1,0 +1,2 @@
+# echovault
+Local Voice Assistant
