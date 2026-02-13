@@ -89,7 +89,7 @@ def run_push_to_talk(config: Config):
 
 
 def run_always_listening(config: Config):
-    """Always-listening mode: wake word triggers recording."""
+    """Always-listening mode: wake word triggers a multi-turn conversation."""
     from src.wakeword.oww_wakeword import OpenWakeWordDetector
 
     recorder, player, stt, llm, tts = build_components(config)
@@ -104,33 +104,53 @@ def run_always_listening(config: Config):
     logger.info(f"Always-listening mode. Say '{config.wakeword.model_name}' to activate.")
     logger.info("Press Ctrl+C to exit.\n")
 
+    listen_window = 5.0  # seconds to wait for speech each iteration
+    idle_limit = 30.0    # total silence before returning to wake word mode
+
     def on_wake_word():
-        logger.info("Wake word detected! Listening for command...")
+        logger.info("Wake word detected! Entering conversation mode...")
+        cumulative_silence = 0.0
 
-        # Record with VAD
-        audio = recorder.record_with_vad(
-            aggressiveness=config.vad.aggressiveness,
-            silence_timeout=config.vad.silence_timeout,
-            frame_duration_ms=config.vad.frame_duration_ms,
-        )
-        if len(audio) == 0:
-            logger.info("No speech detected.")
-            return
+        while True:
+            # Record with VAD, using a short listen window
+            audio = recorder.record_with_vad(
+                aggressiveness=config.vad.aggressiveness,
+                silence_timeout=config.vad.silence_timeout,
+                frame_duration_ms=config.vad.frame_duration_ms,
+                listen_timeout=listen_window,
+            )
 
-        # Transcribe
-        text = stt.transcribe(audio, config.audio.sample_rate)
-        if not text:
-            logger.info("Could not transcribe audio.")
-            return
-        print(f"You said: {text}")
+            if len(audio) == 0:
+                cumulative_silence += listen_window
+                logger.info(
+                    f"No speech detected ({cumulative_silence:.0f}s/{idle_limit:.0f}s idle)."
+                )
+                if cumulative_silence >= idle_limit:
+                    logger.info("No speech for 30s, returning to wake word mode.")
+                    break
+                continue
 
-        # Get LLM response
-        response = llm.respond(text)
-        print(f"Jarvis: {response}")
+            # Got speech — reset idle counter
+            cumulative_silence = 0.0
 
-        # Speak response
-        chunks = tts.synthesize_stream(response)
-        player.play_stream(chunks, tts.get_sample_rate())
+            # Transcribe
+            text = stt.transcribe(audio, config.audio.sample_rate)
+            if not text:
+                logger.info("Could not transcribe audio.")
+                continue
+            print(f"You said: {text}")
+
+            # Get LLM response
+            response = llm.respond(text)
+            print(f"Jarvis: {response}")
+
+            # Speak response
+            chunks = tts.synthesize_stream(response)
+            player.play_stream(chunks, tts.get_sample_rate())
+
+        # Exiting conversation — reset history for next activation
+        llm.reset_conversation()
+        logger.info("Conversation ended. Listening for wake word...")
 
     try:
         detector.listen(on_wake_word)

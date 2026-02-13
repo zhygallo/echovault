@@ -61,8 +61,13 @@ class AudioRecorder:
 
     def record_with_vad(self, aggressiveness: int = 2,
                         silence_timeout: float = 1.0,
-                        frame_duration_ms: int = 30) -> np.ndarray:
-        """Record audio using VAD, stopping after silence_timeout seconds of silence."""
+                        frame_duration_ms: int = 30,
+                        listen_timeout: float = 0) -> np.ndarray:
+        """Record audio using VAD, stopping after silence_timeout seconds of silence.
+
+        Args:
+            listen_timeout: Max seconds to wait for speech to start. 0 = no limit.
+        """
         vad = webrtcvad.Vad(aggressiveness)
         frame_size = int(self.sample_rate * frame_duration_ms / 1000)  # samples per frame
         frame_bytes = frame_size * 2  # int16 = 2 bytes per sample
@@ -78,7 +83,9 @@ class AudioRecorder:
         frames: list[bytes] = []
         speech_started = False
         silent_frames = 0
+        waiting_frames = 0
         max_silent_frames = int(silence_timeout * 1000 / frame_duration_ms)
+        max_waiting_frames = int(listen_timeout * 1000 / frame_duration_ms) if listen_timeout > 0 else 0
 
         logger.info("Listening for speech...")
 
@@ -101,6 +108,11 @@ class AudioRecorder:
                     silent_frames += 1
                     if silent_frames >= max_silent_frames:
                         logger.info("Silence detected, stopping recording.")
+                        break
+                else:
+                    waiting_frames += 1
+                    if max_waiting_frames > 0 and waiting_frames >= max_waiting_frames:
+                        logger.info("No speech detected within listen timeout.")
                         break
         except KeyboardInterrupt:
             pass
