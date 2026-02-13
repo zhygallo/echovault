@@ -24,7 +24,7 @@ class OpenWakeWordDetector(BaseWakeWord):
         self._pa = pyaudio.PyAudio()
 
         logger.info(f"Loading OpenWakeWord model '{model_name}'...")
-        self._model = Model(wakeword_models=[model_name])
+        self._model = Model(wakeword_models=[model_name], inference_framework="onnx")
         logger.info("OpenWakeWord model loaded.")
 
     def listen(self, callback: Callable[[], None]):
