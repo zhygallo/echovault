@@ -1,0 +1,34 @@
+audio:
+  sample_rate: 16000
+  channels: 1
+  chunk_size: 1024
+  format: int16
+
+whisper:
+  model: base.en
+  device: cpu
+  language: en
+
+claude:
+  model: claude-sonnet-4-5-20250929
+  max_tokens: 1024
+  system_prompt: >
+    You are a helpful voice assistant called Jarvis. Keep your responses
+    concise and conversational — ideally 1-3 sentences unless the user
+    asks for detail. You are speaking out loud, so avoid markdown,
+    bullet points, or formatting that doesn't translate to speech.
+  max_history_pairs: 10
+
+piper:
+  model_path: models/en_US-lessac-medium.onnx
+  config_path: models/en_US-lessac-medium.onnx.json
+
+vad:
+  aggressiveness: 2
+  silence_timeout: 1.0
+  frame_duration_ms: 30
+
+wakeword:
+  model_name: hey_jarvis
+  threshold: 0.5
+  chunk_size: 1280
