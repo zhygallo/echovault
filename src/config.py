@@ -18,9 +18,11 @@ class AudioConfig:
 
 @dataclass
 class WhisperConfig:
+    backend: str = "local"  # "local" or "api" (OpenAI Whisper API)
     model: str = "base.en"
     device: str = "cpu"
     language: str = "en"
+    api_key: str = ""
 
 
 @dataclass
@@ -89,6 +91,10 @@ class Config:
         if api_key:
             config.claude.api_key = api_key
 
+        openai_key = os.getenv("OPENAI_API_KEY", "")
+        if openai_key:
+            config.whisper.api_key = openai_key
+
         config._validate()
         return config
 
@@ -96,6 +102,11 @@ class Config:
         if not self.claude.api_key:
             raise ValueError(
                 "ANTHROPIC_API_KEY not set. Add it to .env or set the environment variable."
+            )
+        if self.whisper.backend == "api" and not self.whisper.api_key:
+            raise ValueError(
+                "OPENAI_API_KEY not set. Required when whisper.backend is 'api'. "
+                "Add it to .env or set the environment variable."
             )
         if not Path(self.piper.model_path).exists():
             raise FileNotFoundError(

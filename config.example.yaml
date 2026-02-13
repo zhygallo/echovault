@@ -5,7 +5,8 @@ audio:
   format: int16
 
 whisper:
-  model: base.en
+  backend: local       # "local" (run Whisper on-device) or "api" (OpenAI Whisper API)
+  model: base.en       # Local model name (base.en, small.en, etc.) — ignored when backend: api
   device: cpu
   language: en
 

@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "echovault"
+version = "0.1.0"
+description = "Local voice assistant powered by Whisper, Claude, and Piper TTS"
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.scripts]
+echovault = "src.main:main"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+PyAudio = ">=0.2.13"
+webrtcvad-wheels = ">=2.0.11"
+openai-whisper = ">=20231117"
+anthropic = ">=0.50.0"
+piper-tts = ">=1.2.0"
+openwakeword = ">=0.6.0"
+numpy = ">=1.24.0"
+PyYAML = ">=6.0"
+python-dotenv = ">=1.0.0"
+sounddevice = ">=0.4.6"
+openai = ">=1.0.0"
+flask = ">=3.0.0"
+flask-socketio = ">=5.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
