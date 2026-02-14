@@ -19,8 +19,8 @@ class AudioConfig:
 @dataclass
 class WhisperConfig:
     backend: str = "local"  # "local" or "api" (OpenAI Whisper API)
-    model: str = "base.en"
-    device: str = "cpu"
+    model: str = "turbo"
+    device: str = "auto"
     language: str = "en"
     api_key: str = ""
 

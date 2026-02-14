@@ -6,8 +6,8 @@ audio:
 
 whisper:
   backend: local       # "local" (run Whisper on-device) or "api" (OpenAI Whisper API)
-  model: base.en       # Local model name (base.en, small.en, etc.) — ignored when backend: api
-  device: cpu
+  model: turbo          # Local model name (base.en, small.en, turbo, etc.) — ignored when backend: api
+  device: auto          # auto | cpu | cuda | mps
   language: en
 
 claude:
