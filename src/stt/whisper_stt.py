@@ -27,7 +27,19 @@ class WhisperSTT(BaseSTT):
     def __init__(self, model_name: str = "turbo", device: str = "auto"):
         resolved_device, self._fp16 = _resolve_device(device)
         logger.info(f"Loading Whisper model '{model_name}' on {resolved_device}...")
-        self._model = whisper.load_model(model_name, device=resolved_device)
+        if resolved_device == "mps":
+            # MPS doesn't support sparse COO tensors; load on CPU, densify, then move
+            model = whisper.load_model(model_name, device="cpu")
+            for name, buf in list(model.named_buffers()):
+                if buf.is_sparse:
+                    parts = name.split(".")
+                    mod = model
+                    for part in parts[:-1]:
+                        mod = getattr(mod, part)
+                    mod._buffers[parts[-1]] = buf.to_dense()
+            self._model = model.to("mps")
+        else:
+            self._model = whisper.load_model(model_name, device=resolved_device)
         logger.info("Whisper model loaded.")
 
     def transcribe(self, audio: np.ndarray, sample_rate: int) -> str:

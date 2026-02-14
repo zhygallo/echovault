@@ -205,13 +205,8 @@ def main():
     parser.add_argument(
         "--ui",
         action="store_true",
-        default=True,
-        help="Enable web UI (default: enabled)",
-    )
-    parser.add_argument(
-        "--no-ui",
-        action="store_true",
-        help="Disable web UI",
+        default=False,
+        help="Enable web UI (default: disabled)",
     )
     args = parser.parse_args()
 
@@ -223,7 +218,7 @@ def main():
 
     event_bus = EventBus()
 
-    if args.ui and not args.no_ui:
+    if args.ui:
         from src.ui.web_ui import start_web_ui
         start_web_ui(event_bus)
 
